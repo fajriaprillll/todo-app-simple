@@ -4,9 +4,15 @@ dist
 *.local
 .DS_Store
 
-# Local env/logs/tools
+# Env files
 .env
+.env.*
+client/.env
 server/.env
-server/.env.bak
+
+# Logs
+*.log
 server/server_log.txt
+
+# Tools
 .graphify/
