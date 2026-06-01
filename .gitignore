@@ -3,3 +3,10 @@ dist
 .next
 *.local
 .DS_Store
+
+# Local env/logs/tools
+.env
+server/.env
+server/.env.bak
+server/server_log.txt
+.graphify/

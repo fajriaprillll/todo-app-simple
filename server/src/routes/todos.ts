@@ -115,19 +115,19 @@ todoRouter.patch("/:id", zValidator("json", updateSchema), async (c) => {
   const id = c.req.param("id");
   const data = c.req.valid("json");
 
-  const existing = await prisma.todo.findFirst({ where: { id, userId } });
-  if (!existing) return c.json({ error: "Todo not found" }, 404);
-
+  // Prepare update data
   const updateData: Record<string, unknown> = { ...data };
   if (data.dueDate !== undefined) {
     updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
   }
 
-  const todo = await prisma.todo.update({
-    where: { id },
-    data: updateData,
-  });
+  // Atomically enforce ownership at DB layer
+  const res = await prisma.todo.updateMany({ where: { id, userId }, data: updateData });
+  if (res.count === 0) return c.json({ error: "Todo not found" }, 404);
 
+  // Fetch updated row; defend against rare race where row was deleted after update
+  const todo = await prisma.todo.findUnique({ where: { id } });
+  if (!todo) return c.json({ error: "Todo not found" }, 404);
   return c.json(todo);
 });
 
@@ -135,10 +135,9 @@ todoRouter.delete("/:id", async (c) => {
   const userId = c.get("userId");
   const id = c.req.param("id");
 
-  const existing = await prisma.todo.findFirst({ where: { id, userId } });
-  if (!existing) return c.json({ error: "Todo not found" }, 404);
-
-  await prisma.todo.delete({ where: { id } });
+  // Attempt delete; DB enforces ownership in where clause
+  const del = await prisma.todo.deleteMany({ where: { id, userId } });
+  if (del.count === 0) return c.json({ error: "Todo not found" }, 404);
   return c.json({ success: true });
 });
 
