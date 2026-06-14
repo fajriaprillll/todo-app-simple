@@ -74,29 +74,55 @@ export function DashboardPage() {
   // Active tasks
   const activeTodos = useMemo(() => todos || [], [todos]);
 
-  // Selected date tasks
+  // Selected date tasks (either scheduled or completed on this day)
   const selectedDateTasks = useMemo(() => {
     const startOfSelected = new Date(selectedDate);
     startOfSelected.setHours(0, 0, 0, 0);
 
     return activeTodos.filter((todo) => {
-      if (!todo.dueDate) return false;
-      const todoDate = new Date(todo.dueDate);
-      todoDate.setHours(0, 0, 0, 0);
-      return todoDate.getTime() === startOfSelected.getTime();
+      if (todo.dueDate) {
+        const todoDate = new Date(todo.dueDate);
+        todoDate.setHours(0, 0, 0, 0);
+        if (todoDate.getTime() === startOfSelected.getTime()) return true;
+      }
+      if (todo.completed && todo.updatedAt) {
+        const compDate = new Date(todo.updatedAt);
+        compDate.setHours(0, 0, 0, 0);
+        if (compDate.getTime() === startOfSelected.getTime()) return true;
+      }
+      return false;
     });
   }, [activeTodos, selectedDate]);
 
-  // Check if date has active tasks
-  const dateHasActiveTasks = (date: Date) => {
+  // Check completion progress for a date
+  const getDateTaskStatus = (date: Date) => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
-    return activeTodos.some(t => {
-      if (t.completed || !t.dueDate) return false;
-      const due = new Date(t.dueDate);
-      due.setHours(0, 0, 0, 0);
-      return due.getTime() === d.getTime();
+    
+    const dayTasks = activeTodos.filter(t => {
+      if (t.dueDate) {
+        const due = new Date(t.dueDate);
+        due.setHours(0, 0, 0, 0);
+        if (due.getTime() === d.getTime()) return true;
+      }
+      if (t.completed && t.updatedAt) {
+        const comp = new Date(t.updatedAt);
+        comp.setHours(0, 0, 0, 0);
+        if (comp.getTime() === d.getTime()) return true;
+      }
+      return false;
     });
+
+    if (dayTasks.length === 0) return null;
+
+    const completedCount = dayTasks.filter(t => t.completed).length;
+    const totalCount = dayTasks.length;
+
+    return {
+      total: totalCount,
+      completed: completedCount,
+      allCompleted: completedCount === totalCount,
+    };
   };
 
   // Render Calendar Month Grid
@@ -242,7 +268,7 @@ export function DashboardPage() {
             {calendarDays.map((cell, idx) => {
               const isSelected = selectedDate.toDateString() === cell.date.toDateString();
               const isToday = new Date().toDateString() === cell.date.toDateString();
-              const hasTask = dateHasActiveTasks(cell.date);
+              const taskStatus = getDateTaskStatus(cell.date);
 
               return (
                 <button
@@ -263,12 +289,22 @@ export function DashboardPage() {
                         : "hover:bg-secondary/40 text-foreground/80"
                   )}
                 >
-                  <span>{cell.dayNum}</span>
-                  {hasTask && (
-                    <span className={cn(
-                      "absolute bottom-2 h-1.5 w-1.5 rounded-full",
-                      isSelected ? "bg-amber-400 dark:bg-background" : "bg-[#5D3EBB] dark:bg-[#7B5CFA]"
-                    )} />
+                  <span className={cn(taskStatus && "-mt-2")}>{cell.dayNum}</span>
+                  {taskStatus && (
+                    <div className="absolute bottom-1.5 flex items-center justify-center gap-0.5">
+                      <span className={cn(
+                        "h-1.5 w-1.5 rounded-full shrink-0",
+                        taskStatus.allCompleted
+                          ? (isSelected ? "bg-emerald-300 dark:bg-emerald-600" : "bg-emerald-500")
+                          : (isSelected ? "bg-amber-300 dark:bg-amber-600" : "bg-[#5D3EBB] dark:bg-[#7B5CFA]")
+                      )} />
+                      <span className={cn(
+                        "text-[8px] font-bold tabular-nums",
+                        isSelected ? "text-white/80 dark:text-background/80" : "text-muted-foreground/60"
+                      )}>
+                        {taskStatus.completed}/{taskStatus.total}
+                      </span>
+                    </div>
                   )}
                 </button>
               );

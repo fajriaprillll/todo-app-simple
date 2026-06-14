@@ -4,6 +4,7 @@ import { LoginPage } from "@/pages/login";
 import { RegisterPage } from "@/pages/register";
 import { DashboardPage } from "@/pages/dashboard";
 import { TodosPage } from "@/pages/todos";
+import { FocusPage } from "@/pages/focus";
 import { StatsPage } from "@/pages/stats";
 import { SettingsPage } from "@/pages/settings";
 import { NotFoundPage } from "@/pages/not-found";
@@ -24,6 +25,7 @@ export function AppRouter() {
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/todos" element={<TodosPage />} />
+        <Route path="/focus" element={<FocusPage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

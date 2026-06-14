@@ -14,6 +14,7 @@ model User {
   password String
 
   todos      Todo[]
+  focusSessions FocusSession[]
   refreshTokens RefreshToken[]
 }
 
@@ -30,6 +31,40 @@ model Todo {
 
   userId String
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subtasks Subtask[]
+  focusSessions FocusSession[]
+
+  @@index([userId])
+}
+
+model Subtask {
+  id        String   @id @default(cuid())
+  taskId    String
+  title     String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task Todo @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model FocusSession {
+  id        String   @id @default(cuid())
+  userId    String
+  todoId    String?
+  duration  Int
+  completed Boolean  @default(false)
+  startedAt DateTime
+  endedAt   DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  todo Todo? @relation(fields: [todoId], references: [id], onDelete: SetNull)
+
+  @@index([userId, startedAt])
+  @@index([todoId])
 }
 
 model RefreshToken {

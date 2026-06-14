@@ -24,22 +24,44 @@ const updateSchema = z.object({
   position: z.number().int().optional(),
 });
 
+const subtaskCreateSchema = z.object({
+  title: z.string().min(1).max(200),
+});
+
+const subtaskUpdateSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  completed: z.boolean().optional(),
+});
+
+const todoSelect = {
+  id: true,
+  title: true,
+  description: true,
+  completed: true,
+  priority: true,
+  dueDate: true,
+  position: true,
+  createdAt: true,
+  updatedAt: true,
+  subtasks: {
+    orderBy: { createdAt: "asc" as const },
+    select: {
+      id: true,
+      taskId: true,
+      title: true,
+      completed: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  },
+};
+
 todoRouter.get("/", async (c) => {
   const userId = c.get("userId");
   const todos = await prisma.todo.findMany({
     where: { userId },
     orderBy: [{ position: "asc" }, { createdAt: "desc" }],
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      completed: true,
-      priority: true,
-      dueDate: true,
-      position: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+    select: todoSelect,
   });
   return c.json(todos);
 });
@@ -105,9 +127,60 @@ todoRouter.post("/", zValidator("json", createSchema), async (c) => {
       dueDate: data.dueDate ? new Date(data.dueDate) : null,
       position: nextPosition,
     },
+    select: todoSelect,
   });
 
   return c.json(todo, 201);
+});
+
+todoRouter.post("/:taskId/subtasks", zValidator("json", subtaskCreateSchema), async (c) => {
+  const userId = c.get("userId");
+  const taskId = c.req.param("taskId");
+  const { title } = c.req.valid("json");
+
+  const todo = await prisma.todo.findFirst({
+    where: { id: taskId, userId },
+    select: { id: true },
+  });
+  if (!todo) return c.json({ error: "Todo not found" }, 404);
+
+  const subtask = await prisma.subtask.create({
+    data: { taskId, title },
+  });
+  return c.json(subtask, 201);
+});
+
+todoRouter.patch("/subtasks/:id", zValidator("json", subtaskUpdateSchema), async (c) => {
+  const userId = c.get("userId");
+  const id = c.req.param("id");
+  const data = c.req.valid("json");
+
+  if (Object.keys(data).length === 0) {
+    return c.json({ error: "No changes provided" }, 400);
+  }
+
+  const subtask = await prisma.subtask.findFirst({
+    where: { id, task: { userId } },
+    select: { id: true },
+  });
+  if (!subtask) return c.json({ error: "Subtask not found" }, 404);
+
+  const updated = await prisma.subtask.update({
+    where: { id },
+    data,
+  });
+  return c.json(updated);
+});
+
+todoRouter.delete("/subtasks/:id", async (c) => {
+  const userId = c.get("userId");
+  const id = c.req.param("id");
+
+  const del = await prisma.subtask.deleteMany({
+    where: { id, task: { userId } },
+  });
+  if (del.count === 0) return c.json({ error: "Subtask not found" }, 404);
+  return c.json({ success: true });
 });
 
 todoRouter.patch("/:id", zValidator("json", updateSchema), async (c) => {
@@ -126,7 +199,7 @@ todoRouter.patch("/:id", zValidator("json", updateSchema), async (c) => {
   if (res.count === 0) return c.json({ error: "Todo not found" }, 404);
 
   // Fetch updated row; defend against rare race where row was deleted after update
-  const todo = await prisma.todo.findUnique({ where: { id } });
+  const todo = await prisma.todo.findUnique({ where: { id }, select: todoSelect });
   if (!todo) return c.json({ error: "Todo not found" }, 404);
   return c.json(todo);
 });

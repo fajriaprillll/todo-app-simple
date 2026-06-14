@@ -16,7 +16,16 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useTodos, useCreateTodo, useUpdateTodo, useDeleteTodo, useReorderTodos } from "@/lib/queries";
+import {
+  useTodos,
+  useCreateTodo,
+  useUpdateTodo,
+  useDeleteTodo,
+  useReorderTodos,
+  useCreateSubtask,
+  useUpdateSubtask,
+  useDeleteSubtask,
+} from "@/lib/queries";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,8 +39,9 @@ import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import {
   Plus, CheckCircle2, Circle, Trash2, Calendar, Search, X, ArrowUpDown, ListTodo,
-  GripVertical, CheckSquare, Square, Download, Edit3,
+  GripVertical, CheckSquare, Square, Download, Edit3, Check, Loader2,
 } from "lucide-react";
+import type { Subtask, Todo } from "@/types";
 
 type Filter = "all" | "active" | "completed";
 type Sort = "newest" | "oldest" | "priority-high" | "priority-low" | "due-date";
@@ -41,27 +51,69 @@ function SortableTodoItem({
   onToggle,
   onDelete,
   onEdit,
+  onCreateSubtask,
+  onUpdateSubtask,
+  onDeleteSubtask,
+  subtaskLoading,
   selected,
   onSelect,
   selectMode,
 }: {
-  todo: { id: string; title: string; description: string | null; completed: boolean; priority: "low" | "medium" | "high"; dueDate: string | null };
+  todo: Todo;
   onToggle: () => void;
   onDelete: () => void;
   onEdit: () => void;
+  onCreateSubtask: (title: string) => Promise<void>;
+  onUpdateSubtask: (id: string, data: Partial<Pick<Subtask, "title" | "completed">>) => Promise<void>;
+  onDeleteSubtask: (id: string) => Promise<void>;
+  subtaskLoading: boolean;
   selected: boolean;
   onSelect: () => void;
   selectMode: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: todo.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
+  const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
+  const [editingSubtaskTitle, setEditingSubtaskTitle] = useState("");
+  const [subtaskError, setSubtaskError] = useState("");
+  const totalSubtasks = todo.subtasks.length;
+  const completedSubtasks = todo.subtasks.filter((subtask) => subtask.completed).length;
+  const progress = totalSubtasks ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
+
+  const createSubtask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const title = newSubtaskTitle.trim();
+    if (!title) return;
+    setSubtaskError("");
+    try {
+      setNewSubtaskTitle("");
+      await onCreateSubtask(title);
+    } catch (error) {
+      setSubtaskError(error instanceof Error ? error.message : "Could not create subtask");
+      setNewSubtaskTitle(title);
+    }
+  };
+
+  const saveSubtask = async (id: string) => {
+    const title = editingSubtaskTitle.trim();
+    if (!title) return;
+    setSubtaskError("");
+    try {
+      setEditingSubtaskId(null);
+      setEditingSubtaskTitle("");
+      await onUpdateSubtask(id, { title });
+    } catch (error) {
+      setSubtaskError(error instanceof Error ? error.message : "Could not update subtask");
+    }
+  };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-200 mx-1 mb-2.5 bg-secondary/10 dark:bg-secondary/5 border border-border/10 border-l-[4px]",
+        "group rounded-2xl px-5 py-4 transition-[background,border,box-shadow,transform] duration-200 mx-1 mb-2.5 bg-secondary/10 dark:bg-secondary/5 border border-border/10 border-l-[4px]",
         todo.priority === "high" 
           ? "border-l-rose-500/60 dark:border-l-rose-500" 
           : todo.priority === "medium" 
@@ -71,60 +123,167 @@ function SortableTodoItem({
         selected && "bg-[#5D3EBB]/5 border-[#5D3EBB]/20"
       )}
     >
-      {selectMode ? (
-        <button onClick={onSelect} className="shrink-0 text-muted-foreground/40 hover:text-[#5D3EBB] transition-colors">
-          {selected ? <CheckSquare className="h-5 w-5 text-[#5D3EBB]" /> : <Square className="h-5 w-5" />}
-        </button>
-      ) : (
-        <button 
-          className="cursor-grab active:cursor-grabbing touch-none shrink-0 text-muted-foreground/15 opacity-0 group-hover:opacity-100 transition-opacity hover:text-[#5D3EBB]" 
-          {...attributes} 
-          {...listeners}
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
-      )}
-
-      <button onClick={onToggle} className="shrink-0 text-muted-foreground/30 transition-all hover:text-[#5D3EBB] active:scale-75">
-        {todo.completed ? (
-          <CheckCircle2 className="h-5 w-5 text-emerald-500 animate-check-pop" />
+      <div className="flex items-center gap-4">
+        {selectMode ? (
+          <button onClick={onSelect} className="shrink-0 text-muted-foreground/40 hover:text-[#5D3EBB] transition-colors">
+            {selected ? <CheckSquare className="h-5 w-5 text-[#5D3EBB]" /> : <Square className="h-5 w-5" />}
+          </button>
         ) : (
-          <Circle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+          <button 
+            className="cursor-grab active:cursor-grabbing touch-none shrink-0 text-muted-foreground/15 opacity-0 group-hover:opacity-100 transition-opacity hover:text-[#5D3EBB]" 
+            {...attributes} 
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
         )}
-      </button>
 
-      <div className="flex-1 min-w-0" onDoubleClick={onEdit}>
-        <span className={cn("text-xs font-semibold transition-all text-foreground/80 cursor-default", todo.completed && "text-muted-foreground/40 line-through")}>
-          {todo.title}
-        </span>
-        {todo.description && (
-          <p className="truncate text-[10px] text-muted-foreground/50 mt-0.5">{todo.description}</p>
-        )}
+        <button onClick={onToggle} className="shrink-0 text-muted-foreground/30 transition-all hover:text-[#5D3EBB] active:scale-75">
+          {todo.completed ? (
+            <CheckCircle2 className="h-5 w-5 text-emerald-500 animate-check-pop" />
+          ) : (
+            <Circle className="h-5 w-5 group-hover:scale-110 transition-transform" />
+          )}
+        </button>
+
+        <div className="flex-1 min-w-0" onDoubleClick={onEdit}>
+          <span className={cn("text-xs font-semibold transition-all text-foreground/80 cursor-default", todo.completed && "text-muted-foreground/40 line-through")}>
+            {todo.title}
+          </span>
+          {todo.description && (
+            <p className="truncate text-[10px] text-muted-foreground/50 mt-0.5">{todo.description}</p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Badge priority={todo.priority} />
+          
+          {todo.dueDate && (
+            <span className={cn(
+              "hidden sm:flex items-center gap-1 text-[10px] font-medium",
+              new Date(todo.dueDate) < new Date() && !todo.completed
+                ? "text-red-400/80"
+                : "text-muted-foreground/50"
+            )}>
+              <Calendar className="h-3.5 w-3.5" />
+              {formatRelativeDate(todo.dueDate)}
+            </span>
+          )}
+
+          <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={onEdit} className="p-1 rounded-lg text-muted-foreground/30 hover:text-[#5D3EBB] hover:bg-secondary/60 transition-all active:scale-95">
+              <Edit3 className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={onDelete} className="p-1 rounded-lg text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 transition-all active:scale-95">
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2.5 shrink-0">
-        <Badge priority={todo.priority} />
-        
-        {todo.dueDate && (
-          <span className={cn(
-            "flex items-center gap-1 text-[10px] font-medium",
-            new Date(todo.dueDate) < new Date() && !todo.completed
-              ? "text-red-400/80"
-              : "text-muted-foreground/50"
-          )}>
-            <Calendar className="h-3.5 w-3.5" />
-            {formatRelativeDate(todo.dueDate)}
-          </span>
-        )}
-
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={onEdit} className="p-1 rounded-lg text-muted-foreground/30 hover:text-[#5D3EBB] hover:bg-secondary/60 transition-all active:scale-95">
-            <Edit3 className="h-3.5 w-3.5" />
-          </button>
-          <button onClick={onDelete} className="p-1 rounded-lg text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 transition-all active:scale-95">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+      <div className="mt-4 pl-0 sm:pl-12">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/55">
+              <span>Progress</span>
+              <span className="text-foreground/70 tabular-nums">{progress}%</span>
+              <span className="text-muted-foreground/40">{completedSubtasks}/{totalSubtasks} done</span>
+              {subtaskLoading && <Loader2 className="h-3 w-3 animate-spin text-[#5D3EBB]" />}
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary/70">
+              <div
+                className="h-full rounded-full bg-[#5D3EBB] transition-[width] duration-200 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
         </div>
+
+        <div className="space-y-1.5">
+          {todo.subtasks.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border/35 bg-background/25 px-3 py-2 text-[10px] text-muted-foreground/45">
+              No subtasks yet.
+            </p>
+          ) : (
+            todo.subtasks.map((subtask) => (
+              <div key={subtask.id} className="flex items-center gap-2 rounded-xl bg-background/25 px-2.5 py-2 text-xs">
+                <button
+                  onClick={() => onUpdateSubtask(subtask.id, { completed: !subtask.completed })}
+                  className="shrink-0 text-muted-foreground/40 hover:text-emerald-500 active:scale-90"
+                >
+                  {subtask.completed ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Circle className="h-4 w-4" />}
+                </button>
+                {editingSubtaskId === subtask.id ? (
+                  <form
+                    className="flex min-w-0 flex-1 items-center gap-1.5"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      saveSubtask(subtask.id);
+                    }}
+                  >
+                    <input
+                      value={editingSubtaskTitle}
+                      onChange={(e) => setEditingSubtaskTitle(e.target.value)}
+                      className="h-7 min-w-0 flex-1 rounded-lg border border-border/45 bg-background/70 px-2 text-xs outline-none focus:ring-1 focus:ring-[#5D3EBB]"
+                      autoFocus
+                    />
+                    <button type="submit" className="rounded-lg p-1 text-emerald-500 hover:bg-emerald-500/10 active:scale-95">
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                    <button type="button" onClick={() => setEditingSubtaskId(null)} className="rounded-lg p-1 text-muted-foreground/45 hover:bg-secondary/50 active:scale-95">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </form>
+                ) : (
+                  <>
+                    <button
+                      onDoubleClick={() => {
+                        setEditingSubtaskId(subtask.id);
+                        setEditingSubtaskTitle(subtask.title);
+                      }}
+                      className={cn(
+                        "min-w-0 flex-1 truncate text-left text-[11px] font-medium",
+                        subtask.completed ? "text-muted-foreground/40 line-through" : "text-foreground/75",
+                      )}
+                    >
+                      {subtask.title}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingSubtaskId(subtask.id);
+                        setEditingSubtaskTitle(subtask.title);
+                      }}
+                      className="rounded-lg p-1 text-muted-foreground/25 hover:bg-secondary/50 hover:text-[#5D3EBB] active:scale-95"
+                    >
+                      <Edit3 className="h-3.5 w-3.5" />
+                    </button>
+                    <button onClick={() => onDeleteSubtask(subtask.id)} className="rounded-lg p-1 text-muted-foreground/25 hover:bg-destructive/10 hover:text-destructive active:scale-95">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        <form onSubmit={createSubtask} className="mt-3 flex items-center gap-2">
+          <input
+            value={newSubtaskTitle}
+            onChange={(e) => setNewSubtaskTitle(e.target.value)}
+            placeholder="Create new subtask..."
+            className="h-8.5 min-w-0 flex-1 rounded-xl border border-border/40 bg-background/40 px-3.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/35 focus:ring-1 focus:ring-[#5D3EBB] transition-all"
+          />
+          <button
+            type="submit"
+            disabled={!newSubtaskTitle.trim() || subtaskLoading}
+            className="flex h-8.5 px-3.5 items-center justify-center gap-1.5 rounded-xl bg-[#5D3EBB] hover:bg-[#4a2fa3] text-white text-[11px] font-bold transition-all active:scale-95 disabled:pointer-events-none disabled:opacity-40 shadow-sm"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add Subtask
+          </button>
+        </form>
+        {subtaskError && <p className="mt-2 text-[10px] font-medium text-destructive">{subtaskError}</p>}
       </div>
     </div>
   );
@@ -238,11 +397,14 @@ function fireConfetti() {
 
 export function TodosPage() {
   useDocumentTitle("Tasks");
-  const { data: todos, isLoading } = useTodos();
+  const { data: todos, isLoading, isError, error } = useTodos();
   const createTodo = useCreateTodo();
   const updateTodo = useUpdateTodo();
   const deleteTodo = useDeleteTodo();
   const reorderTodos = useReorderTodos();
+  const createSubtask = useCreateSubtask();
+  const updateSubtask = useUpdateSubtask();
+  const deleteSubtask = useDeleteSubtask();
   const [newTodo, setNewTodo] = useState(false);
   const [editingTodo, setEditingTodo] = useState<{ id: string; title: string; description: string | null; priority: string; dueDate: string | null } | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
@@ -549,6 +711,14 @@ export function TodosPage() {
       <GlassCard className="overflow-hidden animate-slide-up-fade animation-delay-200 p-0 border border-border/40 shadow-sm">
         {isLoading ? (
           <div className="p-6 space-y-2.5">{[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-12 rounded-2xl shimmer" />)}</div>
+        ) : isError ? (
+          <div className="py-16 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+              <X className="h-6 w-6" />
+            </div>
+            <p className="text-sm font-bold text-foreground/80">Could not load tasks</p>
+            <p className="mt-1 text-xs text-muted-foreground/50">{error instanceof Error ? error.message : "Please try again."}</p>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center">
             <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-[#5D3EBB]/10 shadow-sm">
@@ -591,6 +761,16 @@ export function TodosPage() {
                         onToggle={() => handleToggle(todo)}
                         onDelete={() => handleDelete(todo)}
                         onEdit={() => setEditingTodo(todo)}
+                        onCreateSubtask={async (title) => {
+                          await createSubtask.mutateAsync({ taskId: todo.id, title });
+                        }}
+                        onUpdateSubtask={async (id, data) => {
+                          await updateSubtask.mutateAsync({ id, ...data });
+                        }}
+                        onDeleteSubtask={async (id) => {
+                          await deleteSubtask.mutateAsync(id);
+                        }}
+                        subtaskLoading={createSubtask.isPending || updateSubtask.isPending || deleteSubtask.isPending}
                         selected={selectedIds.has(todo.id)}
                         onSelect={() => toggleSelect(todo.id)}
                         selectMode={selectMode}

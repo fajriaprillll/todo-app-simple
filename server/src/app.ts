@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { authRouter } from "./routes/auth";
+import { pomodoroRouter } from "./routes/pomodoro";
 import { todoRouter } from "./routes/todos";
 
 const app = new Hono();
@@ -25,6 +26,7 @@ app.use(
 
 app.route("/auth", authRouter);
 app.route("/todos", todoRouter);
+app.route("/pomodoro", pomodoroRouter);
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 

@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   BarChart3,
   Settings,
+  Timer,
   X,
   Crown,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import { useTodoStats } from "@/lib/queries";
 const links = [
   { to: "/", label: "Home", icon: LayoutDashboard },
   { to: "/todos", label: "Tasks", icon: ListTodo },
+  { to: "/focus", label: "Focus", icon: Timer },
   { to: "/stats", label: "Analytics", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
