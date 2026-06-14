@@ -28,4 +28,12 @@ app.route("/todos", todoRouter);
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
+app.onError((err, c) => {
+  console.error(err);
+  return c.json({
+    error: err.message,
+    stack: err.stack,
+  }, 500);
+});
+
 export default app;
