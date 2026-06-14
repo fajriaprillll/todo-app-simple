@@ -1,11 +1,7 @@
 import jwt from "jsonwebtoken";
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
-
-if (!ACCESS_SECRET || !REFRESH_SECRET) {
-  throw new Error('Missing JWT secrets. Set JWT_ACCESS_SECRET and JWT_REFRESH_SECRET in environment');
-}
+const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || "default_taskify_secret_access_key_987654321";
+const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "default_taskify_secret_refresh_key_987654321";
 
 export function signAccessToken(userId: string): string {
   return jwt.sign({ userId }, ACCESS_SECRET, { expiresIn: "15m" });
