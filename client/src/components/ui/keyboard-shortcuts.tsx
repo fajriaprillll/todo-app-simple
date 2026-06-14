@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { Command, Keyboard } from "lucide-react";
+import { Keyboard } from "lucide-react";
 
 const shortcuts = [
   { keys: ["⌘K", "Ctrl+K"], desc: "Open command palette" },

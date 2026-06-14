@@ -1,51 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 98%;
-    --card-foreground: 0 0% 3.9%;
+    --background: 228 15% 96%; /* #F4F5F9 - Soft cool gray/lavender */
+    --foreground: 228 40% 12%; /* Dark slate text */
+    --card: 0 0% 100%;
+    --card-foreground: 228 40% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 252 100% 64%;
+    --popover-foreground: 228 40% 12%;
+    --primary: 256 56% 47%; /* #5D3EBB */
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 252 100% 64%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84% 60%;
+    --secondary: 228 15% 92%; /* #E9EAF0 */
+    --secondary-foreground: 256 56% 20%;
+    --muted: 228 15% 92%;
+    --muted-foreground: 228 10% 50%;
+    --accent: 38 92% 45%; /* Warm amber */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 58%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 252 100% 64%;
-    --radius: 0.75rem;
+    --border: 228 15% 88%;
+    --input: 228 15% 88%;
+    --ring: 256 56% 47%;
+    --radius: 1.15rem;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 95%;
-    --card: 240 10% 5.9%;
-    --card-foreground: 0 0% 95%;
-    --popover: 240 10% 5.9%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 252 100% 68%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 12%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 240 5% 12%;
-    --muted-foreground: 240 5% 55%;
-    --accent: 252 100% 68%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --background: 246 38% 6%; /* #0A0915 - Obsidian dark */
+    --foreground: 246 15% 90%;
+    --card: 246 35% 10%; /* #131124 - Dark card that blends perfectly */
+    --card-foreground: 246 15% 90%;
+    --popover: 246 35% 10%;
+    --popover-foreground: 246 15% 90%;
+    --primary: 252 95% 67%; /* #7B5CFA - Soft bright purple */
+    --primary-foreground: 246 38% 6%;
+    --secondary: 246 25% 15%; /* #1C1934 */
+    --secondary-foreground: 246 15% 90%;
+    --muted: 246 25% 15%;
+    --muted-foreground: 246 12% 58%;
+    --accent: 45 100% 50%; /* Amber */
+    --accent-foreground: 246 38% 6%;
+    --destructive: 0 84% 62%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 14%;
-    --input: 240 5% 14%;
-    --ring: 252 100% 68%;
+    --border: 246 25% 17%; /* #1F1B38 - Blending dark borders */
+    --input: 246 25% 17%;
+    --ring: 252 95% 67%;
   }
 
   * {
@@ -59,25 +61,27 @@
   }
 
   ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.12);
+    background: hsl(var(--muted-foreground) / 0.15);
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.25);
+    background: hsl(var(--muted-foreground) / 0.3);
   }
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
+
 
 @layer utilities {
   .mesh-bg {

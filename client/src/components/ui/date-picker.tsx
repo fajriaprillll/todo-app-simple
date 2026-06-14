@@ -17,6 +17,7 @@ const dayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 export function DatePicker({ value, onChange, label }: DatePickerProps) {
   const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [viewDate, setViewDate] = useState(() => {
     if (value) return new Date(value + "T00:00:00");
@@ -85,29 +86,37 @@ export function DatePicker({ value, onChange, label }: DatePickerProps) {
           {label}
         </label>
       )}
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className={cn(
-          "flex h-10 w-full items-center gap-2 rounded-xl border bg-background/50 backdrop-blur-xl px-3.5 text-sm transition-all duration-200",
-          "hover:border-muted-foreground/30",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring",
-          value ? "text-foreground border-border" : "text-muted-foreground/50 border-border"
-        )}
-      >
-        <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
-        <span className="flex-1 text-left truncate">
-          {value ? formatDisplay(value) : "Pick a date"}
-        </span>
-        {value && (
-          <span
-            onClick={(e) => { e.stopPropagation(); onChange(""); }}
-            className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:text-foreground hover:bg-secondary"
-          >
-            <X className="h-3 w-3" />
+      <div className="relative group">
+        <div className={cn(
+          "absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl blur-sm opacity-0 transition-opacity duration-300 pointer-events-none",
+          (open || focused) && "opacity-100"
+        )} />
+        <button
+          type="button"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onClick={() => setOpen(!open)}
+          className={cn(
+            "relative flex h-11 w-full items-center gap-2 rounded-xl border bg-background/50 backdrop-blur-xl px-3.5 text-sm transition-all duration-200",
+            "hover:border-muted-foreground/30",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring",
+            value ? "text-foreground border-border" : "text-muted-foreground/50 border-border"
+          )}
+        >
+          <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
+          <span className="flex-1 text-left truncate">
+            {value ? formatDisplay(value) : "Pick a date"}
           </span>
-        )}
-      </button>
+          {value && (
+            <span
+              onClick={(e) => { e.stopPropagation(); onChange(""); }}
+              className="relative z-10 flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground/30 transition-colors hover:text-foreground hover:bg-secondary"
+            >
+              <X className="h-3 w-3" />
+            </span>
+          )}
+        </button>
+      </div>
 
       {open && (
         <div className="relative">

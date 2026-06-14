@@ -27,7 +27,7 @@ function ThemeProvider({ children }: { children: ReactNode }) {
 }
 
 function AuthProvider({ children }: { children: ReactNode }) {
-  const { login, setUser, logout } = useAuthStore();
+  const { setUser } = useAuthStore();
 
   useEffect(() => {
     initAuth().then((user) => {

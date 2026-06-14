@@ -24,13 +24,13 @@ import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
-import { formatRelativeDate, cn, formatDate } from "@/lib/utils";
+import { formatRelativeDate, cn } from "@/lib/utils";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import {
   Plus, CheckCircle2, Circle, Trash2, Calendar, Search, X, ArrowUpDown, ListTodo,
-  GripVertical, CheckSquare, Square, Download, Edit3, Check, Loader2,
+  GripVertical, CheckSquare, Square, Download, Edit3,
 } from "lucide-react";
 
 type Filter = "all" | "active" | "completed";
@@ -61,58 +61,71 @@ function SortableTodoItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center gap-2 rounded-xl px-3 py-2.5 transition-all duration-200 mx-1",
-        isDragging ? "z-10 shadow-xl shadow-black/20 scale-[1.02] bg-card border border-border/50" : "hover:bg-secondary/40",
-        selected && "bg-primary/5"
+        "group flex items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-200 mx-1 mb-2.5 bg-secondary/10 dark:bg-secondary/5 border border-border/10 border-l-[4px]",
+        todo.priority === "high" 
+          ? "border-l-rose-500/60 dark:border-l-rose-500" 
+          : todo.priority === "medium" 
+            ? "border-l-amber-500/60 dark:border-l-amber-500" 
+            : "border-l-indigo-500/60 dark:border-l-indigo-500",
+        isDragging ? "z-10 shadow-xl shadow-[#5D3EBB]/10 scale-[1.02] bg-card border-[#5D3EBB]/30" : "hover:bg-secondary/40",
+        selected && "bg-[#5D3EBB]/5 border-[#5D3EBB]/20"
       )}
     >
       {selectMode ? (
-        <button onClick={onSelect} className="shrink-0 text-muted-foreground/40 hover:text-primary transition-colors">
-          {selected ? <CheckSquare className="h-4.5 w-4.5 text-primary" /> : <Square className="h-4.5 w-4.5" />}
+        <button onClick={onSelect} className="shrink-0 text-muted-foreground/40 hover:text-[#5D3EBB] transition-colors">
+          {selected ? <CheckSquare className="h-5 w-5 text-[#5D3EBB]" /> : <Square className="h-5 w-5" />}
         </button>
       ) : (
-        <button className="cursor-grab active:cursor-grabbing touch-none shrink-0 text-muted-foreground/15 opacity-0 group-hover:opacity-100 transition-opacity hover:text-muted-foreground/60" {...attributes} {...listeners}>
-          <GripVertical className="h-3.5 w-3.5" />
+        <button 
+          className="cursor-grab active:cursor-grabbing touch-none shrink-0 text-muted-foreground/15 opacity-0 group-hover:opacity-100 transition-opacity hover:text-[#5D3EBB]" 
+          {...attributes} 
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
         </button>
       )}
 
-      <button onClick={onToggle} className="shrink-0 text-muted-foreground/30 transition-all hover:text-primary active:scale-75">
+      <button onClick={onToggle} className="shrink-0 text-muted-foreground/30 transition-all hover:text-[#5D3EBB] active:scale-75">
         {todo.completed ? (
-          <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500 animate-check-pop" />
+          <CheckCircle2 className="h-5 w-5 text-emerald-500 animate-check-pop" />
         ) : (
-          <Circle className="h-4.5 w-4.5 group-hover:scale-110 transition-transform" />
+          <Circle className="h-5 w-5 group-hover:scale-110 transition-transform" />
         )}
       </button>
 
       <div className="flex-1 min-w-0" onDoubleClick={onEdit}>
-        <span className={cn("text-sm transition-all text-foreground/80 cursor-default", todo.completed && "text-muted-foreground/40 line-through")}>
+        <span className={cn("text-xs font-semibold transition-all text-foreground/80 cursor-default", todo.completed && "text-muted-foreground/40 line-through")}>
           {todo.title}
         </span>
         {todo.description && (
-          <p className="truncate text-xs text-muted-foreground/40 mt-0.5">{todo.description}</p>
+          <p className="truncate text-[10px] text-muted-foreground/50 mt-0.5">{todo.description}</p>
         )}
       </div>
 
-      <Badge priority={todo.priority} />
-      {todo.dueDate && (
-        <span className={cn(
-          "flex items-center gap-1 text-[11px] shrink-0",
-          new Date(todo.dueDate) < new Date() && !todo.completed
-            ? "text-red-400/70"
-            : "text-muted-foreground/50"
-        )}>
-          <Calendar className="h-3 w-3" />
-          {formatRelativeDate(todo.dueDate)}
-        </span>
-      )}
+      <div className="flex items-center gap-2.5 shrink-0">
+        <Badge priority={todo.priority} />
+        
+        {todo.dueDate && (
+          <span className={cn(
+            "flex items-center gap-1 text-[10px] font-medium",
+            new Date(todo.dueDate) < new Date() && !todo.completed
+              ? "text-red-400/80"
+              : "text-muted-foreground/50"
+          )}>
+            <Calendar className="h-3.5 w-3.5" />
+            {formatRelativeDate(todo.dueDate)}
+          </span>
+        )}
 
-      <button onClick={onEdit} className="shrink-0 text-muted-foreground/15 opacity-0 transition-all hover:text-primary group-hover:opacity-100 active:scale-75">
-        <Edit3 className="h-3.5 w-3.5" />
-      </button>
-
-      <button onClick={onDelete} className="shrink-0 text-muted-foreground/15 opacity-0 transition-all hover:text-destructive group-hover:opacity-100 active:scale-75">
-        <Trash2 className="h-3.5 w-3.5" />
-      </button>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={onEdit} className="p-1 rounded-lg text-muted-foreground/30 hover:text-[#5D3EBB] hover:bg-secondary/60 transition-all active:scale-95">
+            <Edit3 className="h-3.5 w-3.5" />
+          </button>
+          <button onClick={onDelete} className="p-1 rounded-lg text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 transition-all active:scale-95">
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -140,8 +153,13 @@ function NewTodoForm({ onSubmit, onCancel }: {
       <Input id="todo-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What needs to be done?" autoFocus required />
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Description</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional details..." rows={2}
-          className="flex w-full rounded-xl border border-border bg-background/50 backdrop-blur-xl px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all duration-200 hover:border-muted-foreground/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+        <textarea 
+          value={description} 
+          onChange={(e) => setDescription(e.target.value)} 
+          placeholder="Optional details..." 
+          rows={2}
+          className="flex w-full rounded-2xl border border-border bg-background/50 backdrop-blur-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 transition-all duration-200 hover:border-muted-foreground/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5D3EBB]" 
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Select label="Priority" value={priority} onChange={(e) => setPriority(e.target.value)} options={[{ value: "low", label: "Low" }, { value: "medium", label: "Medium" }, { value: "high", label: "High" }]} />
@@ -149,7 +167,7 @@ function NewTodoForm({ onSubmit, onCancel }: {
       </div>
       <div className="flex gap-2 pt-1">
         <Button type="button" variant="ghost" className="flex-1" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" className="flex-1" disabled={loading || !title.trim()}>
+        <Button type="submit" className="flex-1 bg-[#5D3EBB] hover:bg-[#4a2fa3] text-white" disabled={loading || !title.trim()}>
           {loading ? <span className="flex items-center gap-2"><span className="h-3 w-3 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" /> Creating...</span> : "Create Todo"}
         </Button>
       </div>
@@ -186,8 +204,13 @@ function EditTodoForm({ todo, onSubmit, onCancel }: {
       <Input id="edit-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What needs to be done?" autoFocus required />
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Description</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional details..." rows={3}
-          className="flex w-full rounded-xl border border-border bg-background/50 backdrop-blur-xl px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all duration-200 hover:border-muted-foreground/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+        <textarea 
+          value={description} 
+          onChange={(e) => setDescription(e.target.value)} 
+          placeholder="Optional details..." 
+          rows={3}
+          className="flex w-full rounded-2xl border border-border bg-background/50 backdrop-blur-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 transition-all duration-200 hover:border-muted-foreground/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5D3EBB]" 
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Select label="Priority" value={priority} onChange={(e) => setPriority(e.target.value)} options={[{ value: "low", label: "Low" }, { value: "medium", label: "Medium" }, { value: "high", label: "High" }]} />
@@ -195,7 +218,7 @@ function EditTodoForm({ todo, onSubmit, onCancel }: {
       </div>
       <div className="flex gap-2 pt-1">
         <Button type="button" variant="ghost" className="flex-1" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" className="flex-1" disabled={loading || !title.trim()}>
+        <Button type="submit" className="flex-1 bg-[#5D3EBB] hover:bg-[#4a2fa3] text-white" disabled={loading || !title.trim()}>
           {loading ? <span className="flex items-center gap-2"><span className="h-3 w-3 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" /> Saving...</span> : "Save Changes"}
         </Button>
       </div>
@@ -214,7 +237,7 @@ function fireConfetti() {
 }
 
 export function TodosPage() {
-  useDocumentTitle("Todos");
+  useDocumentTitle("Tasks");
   const { data: todos, isLoading } = useTodos();
   const createTodo = useCreateTodo();
   const updateTodo = useUpdateTodo();
@@ -227,7 +250,9 @@ export function TodosPage() {
   const [sort, setSort] = useState<Sort>("newest");
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [exportOpen, setExportOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -239,6 +264,18 @@ export function TodosPage() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setExportOpen(false);
+      }
+    }
+    if (exportOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [exportOpen]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -284,7 +321,7 @@ export function TodosPage() {
       { id: todo.id, completed: willComplete },
       {
         onSuccess: () => {
-          toast.success(willComplete ? "Task completed" : "Task reopened");
+          toast.success(willComplete ? "Task completed!" : "Task reopened");
           if (willComplete) fireConfetti();
         },
       }
@@ -311,8 +348,8 @@ export function TodosPage() {
 
   const handleUpdateTodo = async (data: { title: string; description?: string; priority: string; dueDate?: string | null }) => {
     if (!editingTodo) return;
-    await updateTodo.mutateAsync({ id: editingTodo.id, ...data });
-    toast.success("Todo updated");
+    await updateTodo.mutateAsync({ id: editingTodo.id, ...data, priority: data.priority as any });
+    toast.success("Todo updated successfully");
     setEditingTodo(null);
   };
 
@@ -375,115 +412,156 @@ export function TodosPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      
+      {/* Header */}
       <div className="flex items-start justify-between animate-slide-up-fade">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Todos
-            <span className="ml-1 text-gradient text-2xl">.</span>
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <ListTodo className="h-5.5 w-5.5 text-[#5D3EBB]" />
+            Workspace Tasks
+            <span className="text-[#5D3EBB] text-xl font-bold">.</span>
           </h1>
-          <p className="text-sm text-muted-foreground/60 mt-0.5 flex items-center gap-2">
+          <p className="text-[10px] text-muted-foreground/60 mt-1 flex items-center gap-2">
             <span>{activeCount} active</span>
-            <span className="text-muted-foreground/20">&bull;</span>
+            <span>&bull;</span>
             <span>{completedCount} completed</span>
-            <span className="text-muted-foreground/20">&bull;</span>
+            <span>&bull;</span>
             <span>{todos?.length || 0} total</span>
           </p>
         </div>
-        <Button onClick={() => setNewTodo(true)}>
-          <Plus className="mr-1.5 h-4 w-4" />
+        <Button 
+          onClick={() => setNewTodo(true)}
+          className="h-8.5 px-4 rounded-xl bg-[#5D3EBB] hover:bg-[#4c32a3] text-white flex items-center gap-1.5 shadow-md"
+        >
+          <Plus className="h-4 w-4" />
           Add Todo
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 animate-slide-up-fade animation-delay-100">
-        <div className="relative flex-1 min-w-[160px] max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/30" />
-          <input
-            ref={searchRef}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder='Search todos... (type "/")'
-            className="flex h-9 w-full rounded-xl border border-border bg-background/50 backdrop-blur-xl pl-9 pr-8 text-sm text-foreground placeholder:text-muted-foreground/40 transition-all hover:border-muted-foreground/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/30 hover:text-foreground transition-colors">
-              <X className="h-3 w-3" />
-            </button>
-          )}
+      {/* Control Bar */}
+      <div className="relative z-20 flex flex-col md:flex-row md:items-center justify-between gap-3 animate-slide-up-fade animation-delay-100">
+        
+        {/* Left Side: Search, Filters & Sort */}
+        <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
+          {/* Search */}
+          <div className="relative w-full sm:w-60 md:w-64">
+            <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/40" />
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder='Search tasks... (type "/")'
+              className="flex h-9.5 w-full rounded-2xl border border-border/60 bg-secondary/35 pl-9.5 pr-8 text-xs text-foreground placeholder:text-muted-foreground/45 transition-all hover:border-muted-foreground/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5D3EBB]"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Buttons */}
+          <div className="flex gap-0.5 rounded-2xl border border-border/40 p-0.5 bg-secondary/25 shrink-0">
+            {(["all", "active", "completed"] as const).map((f) => (
+              <button 
+                key={f} 
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all duration-150", 
+                  filter === f 
+                    ? "bg-[#5D3EBB] text-white shadow-sm" 
+                    : "text-muted-foreground/60 hover:text-foreground/80"
+                )}
+              >
+                {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Sort dropdown */}
+          <div className="relative shrink-0">
+            <select 
+              value={sort} 
+              onChange={(e) => setSort(e.target.value as Sort)}
+              className="appearance-none h-9.5 rounded-2xl border border-border/55 bg-secondary/25 pl-3.5 pr-9 text-xs text-muted-foreground/70 transition-all hover:border-muted-foreground/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5D3EBB] cursor-pointer font-medium"
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="priority-high">Priority &uarr;</option>
+              <option value="priority-low">Priority &darr;</option>
+              <option value="due-date">Due date</option>
+            </select>
+            <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40" />
+          </div>
         </div>
 
-        <div className="flex gap-1 rounded-xl border border-border/50 p-0.5 bg-secondary/30">
-          {(["all", "active", "completed"] as const).map((f) => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={cn("rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-150", filter === f ? "bg-primary/15 text-primary shadow-sm" : "text-muted-foreground/50 hover:text-foreground/70")}>
-              {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        <div className="relative">
-          <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}
-            className="appearance-none h-9 rounded-xl border border-border/50 bg-background/50 backdrop-blur-xl pl-3 pr-8 text-xs text-muted-foreground/70 transition-all hover:border-muted-foreground/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer">
-            <option value="newest" className="bg-background text-foreground">Newest</option>
-            <option value="oldest" className="bg-background text-foreground">Oldest</option>
-            <option value="priority-high" className="bg-background text-foreground">Priority &uarr;</option>
-            <option value="priority-low" className="bg-background text-foreground">Priority &darr;</option>
-            <option value="due-date" className="bg-background text-foreground">Due date</option>
-          </select>
-          <ArrowUpDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/30" />
-        </div>
-
-        <div className="flex gap-1">
-          <button onClick={() => { setSelectMode(!selectMode); setSelectedIds(new Set()); }}
-            className={cn("rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all", selectMode ? "bg-primary/15 text-primary" : "text-muted-foreground/50 hover:text-foreground/70")}>
-            <CheckSquare className="h-3.5 w-3.5" />
+        {/* Right Side: Bulk tools & export */}
+        <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+          <button 
+            onClick={() => { setSelectMode(!selectMode); setSelectedIds(new Set()); }}
+            className={cn(
+              "rounded-2xl h-9.5 w-9.5 flex items-center justify-center text-xs font-medium border border-border/40 transition-all active:scale-95", 
+              selectMode ? "bg-[#5D3EBB]/15 text-[#5D3EBB] border-[#5D3EBB]/20" : "text-muted-foreground/50 hover:bg-secondary/40 hover:text-foreground/85"
+            )}
+          >
+            <CheckSquare className="h-4.5 w-4.5" />
           </button>
 
-          <div className="relative group">
-            <button className="rounded-xl px-2.5 py-1.5 text-xs text-muted-foreground/50 hover:text-foreground/70 transition-all">
-              <Download className="h-3.5 w-3.5" />
+          <div className="relative" ref={exportRef}>
+            <button 
+              onClick={() => setExportOpen(!exportOpen)}
+              className={cn(
+                "rounded-2xl h-9.5 w-9.5 flex items-center justify-center border border-border/40 text-muted-foreground/50 hover:bg-secondary/40 hover:text-foreground/85 transition-all active:scale-95",
+                exportOpen && "bg-secondary/40 text-foreground/85"
+              )}
+            >
+              <Download className="h-4.5 w-4.5" />
             </button>
-            <div className="absolute right-0 top-full mt-1 z-50 hidden group-hover:block animate-scale-in">
-              <div className="rounded-xl border border-border/50 bg-card/95 backdrop-blur-xl py-1 shadow-2xl shadow-black/20 min-w-[130px]">
-                <button onClick={handleExportJSON} className="flex w-full items-center gap-2.5 px-3 py-2 text-xs text-muted-foreground/70 transition-all hover:bg-secondary/50 hover:text-foreground">Export JSON</button>
-                <button onClick={handleExportCSV} className="flex w-full items-center gap-2.5 px-3 py-2 text-xs text-muted-foreground/70 transition-all hover:bg-secondary/50 hover:text-foreground">Export CSV</button>
+            {exportOpen && (
+              <div className="absolute right-0 top-full mt-1.5 z-50 animate-scale-in">
+                <div className="rounded-2xl border border-border/45 bg-card/95 backdrop-blur-xl py-1.5 shadow-2xl shadow-black/10 min-w-[130px] overflow-hidden">
+                  <button onClick={() => { handleExportJSON(); setExportOpen(false); }} className="flex w-full items-center gap-2 px-4 py-2 text-xs text-muted-foreground/70 transition-all hover:bg-[#5D3EBB]/10 hover:text-[#5D3EBB]">Export JSON</button>
+                  <button onClick={() => { handleExportCSV(); setExportOpen(false); }} className="flex w-full items-center gap-2 px-4 py-2 text-xs text-muted-foreground/70 transition-all hover:bg-[#5D3EBB]/10 hover:text-[#5D3EBB]">Export CSV</button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Bulk actions tools active state */}
       {selectMode && selectedIds.size > 0 && (
-        <div className="flex items-center gap-2 px-1 animate-slide-up-fade">
-          <span className="text-xs text-muted-foreground/60">{selectedIds.size} selected</span>
-          <Button size="sm" variant="secondary" onClick={handleBulkComplete}>
-            <CheckCircle2 className="mr-1.5 h-3 w-3" /> Complete all
+        <div className="flex items-center gap-2 px-1.5 py-1.5 bg-[#5D3EBB]/5 border border-[#5D3EBB]/10 rounded-2xl animate-slide-up-fade">
+          <span className="text-xs font-bold text-[#5D3EBB] px-2">{selectedIds.size} selected</span>
+          <Button size="sm" variant="secondary" onClick={handleBulkComplete} className="h-8 rounded-xl text-xs font-semibold">
+            <CheckCircle2 className="mr-1.5 h-3.5 w-3.5 text-emerald-500" /> Complete all
           </Button>
-          <Button size="sm" variant="danger" onClick={handleBulkDelete}>
-            <Trash2 className="mr-1.5 h-3 w-3" /> Delete all
+          <Button size="sm" variant="danger" onClick={handleBulkDelete} className="h-8 rounded-xl text-xs font-semibold">
+            <Trash2 className="mr-1.5 h-3.5 w-3.5 text-destructive" /> Delete all
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => { setSelectedIds(new Set()); setSelectMode(false); }}>
+          <Button size="sm" variant="ghost" onClick={() => { setSelectedIds(new Set()); setSelectMode(false); }} className="h-8 text-xs">
             Cancel
           </Button>
         </div>
       )}
 
-      <GlassCard className="overflow-hidden animate-slide-up-fade animation-delay-200 p-0">
+      {/* Todo List Card Container */}
+      <GlassCard className="overflow-hidden animate-slide-up-fade animation-delay-200 p-0 border border-border/40 shadow-sm">
         {isLoading ? (
-          <div className="p-6 space-y-2">{[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-12 rounded-xl shimmer" />)}</div>
+          <div className="p-6 space-y-2.5">{[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-12 rounded-2xl shimmer" />)}</div>
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center">
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 shadow-sm">
-              {search ? <Search className="h-7 w-7 text-muted-foreground/40" /> : <ListTodo className="h-7 w-7 text-muted-foreground/40" />}
+          <div className="py-20 text-center">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-[#5D3EBB]/10 shadow-sm">
+              {search ? <Search className="h-7 w-7 text-[#5D3EBB]/50" /> : <ListTodo className="h-7 w-7 text-[#5D3EBB]/50" />}
             </div>
-            <p className="text-sm font-semibold text-foreground/60">
+            <p className="text-sm font-bold text-foreground/80">
               {search ? "No results found" : filter === "completed" ? "No completed tasks" : "Your todo list is empty"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground/40 mb-6">
-              {search ? "Try a different search term" : filter === "completed" ? "Complete some tasks to see them here" : "Create your first todo to get started"}
+              {search ? "Try checking spelling or filter options" : filter === "completed" ? "Complete tasks in your home workspace" : "Create a new todo task to get started"}
             </p>
             {!search && filter !== "completed" && (
-              <Button size="sm" onClick={() => setNewTodo(true)}>
+              <Button size="sm" onClick={() => setNewTodo(true)} className="bg-[#5D3EBB] hover:bg-[#4a2fa3] text-white rounded-xl h-9.5 px-4 shadow-md">
                 <Plus className="mr-1.5 h-4 w-4" />
                 Create Todo
               </Button>
@@ -492,14 +570,18 @@ export function TodosPage() {
         ) : (
           <>
             {filter !== "completed" && activeCount > 0 && !selectMode && (
-              <div className="px-4 pt-3 flex items-center gap-2">
-                <button onClick={toggleSelectAll} className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground/50 transition-all hover:text-foreground/70 rounded-lg hover:bg-secondary/50">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
+              <div className="px-4.5 pt-3.5 flex items-center gap-2">
+                <button 
+                  onClick={toggleSelectAll} 
+                  className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-[#5D3EBB] hover:bg-[#5D3EBB]/10 rounded-xl transition-all"
+                >
+                  <CheckCircle2 className="h-4.5 w-4.5" />
                   Complete all {activeCount} tasks
                 </button>
               </div>
             )}
-            <div className="p-1">
+            
+            <div className="p-2">
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={filtered.map((t) => t.id)} strategy={verticalListSortingStrategy}>
                   {filtered.map((todo, i) => (
@@ -518,22 +600,24 @@ export function TodosPage() {
                 </SortableContext>
               </DndContext>
             </div>
-            <div className="border-t border-border/30 px-4 py-2.5 flex items-center justify-between text-[11px] text-muted-foreground/30">
-              <span className="font-medium">{filtered.length} task{filtered.length !== 1 ? "s" : ""}</span>
+            
+            <div className="border-t border-border/25 px-5 py-3.5 flex items-center justify-between text-[10px] text-muted-foreground/45 font-medium bg-secondary/5">
+              <span>{filtered.length} task{filtered.length !== 1 ? "s" : ""} found</span>
               <span className="flex items-center gap-4">
-                <span className="flex items-center gap-1.5"><kbd className="rounded border border-border/30 bg-secondary/30 px-1 py-0.5 text-[9px]">drag</kbd> Reorder</span>
-                <span className="flex items-center gap-1.5"><kbd className="rounded border border-border/30 bg-secondary/30 px-1 py-0.5 text-[9px]">dbl</kbd> Edit</span>
-                <span className="flex items-center gap-1.5"><kbd className="rounded border border-border/30 bg-secondary/30 px-1 py-0.5 text-[9px]">?</kbd> Shortcuts</span>
+                <span className="flex items-center gap-1.5"><kbd className="rounded border border-border/30 bg-secondary/40 px-1 py-0.5 text-[9px]">drag</kbd> Reorder</span>
+                <span className="flex items-center gap-1.5"><kbd className="rounded border border-border/30 bg-secondary/40 px-1 py-0.5 text-[9px]">dbl</kbd> Edit</span>
               </span>
             </div>
           </>
         )}
       </GlassCard>
 
+      {/* New task Modal */}
       <Modal open={newTodo} onClose={() => setNewTodo(false)} title="New Todo">
         <NewTodoForm onSubmit={async (data) => { await createTodo.mutateAsync(data); toast.success("Todo created"); setNewTodo(false); }} onCancel={() => setNewTodo(false)} />
       </Modal>
 
+      {/* Edit task Modal */}
       <Modal open={!!editingTodo} onClose={() => setEditingTodo(null)} title="Edit Todo">
         {editingTodo && (
           <EditTodoForm todo={editingTodo} onSubmit={handleUpdateTodo} onCancel={() => setEditingTodo(null)} />

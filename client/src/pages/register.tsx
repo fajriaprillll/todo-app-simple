@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { api } from "@/lib/api";
 import { useDocumentTitle } from "@/lib/use-document-title";
 import type { AuthResponse } from "@/types";
-import { ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Crown } from "lucide-react";
 
 export function RegisterPage() {
   useDocumentTitle("Create account");
@@ -33,68 +33,66 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen mesh-bg">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute left-1/2 top-0 h-[600px] w-[600px] -translate-x-1/2 bg-gradient-to-b from-primary/10 to-transparent rounded-full blur-3xl" />
-        <div className="absolute -right-40 bottom-0 h-[400px] w-[400px] bg-gradient-to-l from-purple-500/5 to-transparent rounded-full blur-3xl" />
-        <div className="absolute -left-40 top-1/3 h-[300px] w-[300px] bg-gradient-to-r from-primary/5 to-transparent rounded-full blur-3xl" />
-      </div>
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4 overflow-hidden">
+      
+      {/* Decorative background shapes */}
+      <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#5D3EBB]/5 dark:bg-[#5D3EBB]/10 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 -left-32 w-80 h-80 rounded-full bg-amber-400/5 dark:bg-amber-400/10 blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-sm flex-col justify-center px-6">
-        <div className="text-center mb-10 animate-slide-up-fade">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-purple-500 shadow-xl shadow-primary/30 ring-1 ring-primary/20">
-            <Sparkles className="h-7 w-7 text-primary-foreground" />
+      {/* Main card */}
+      <div className="relative z-10 w-full max-w-md rounded-[2.5rem] bg-background/95 dark:bg-card/90 backdrop-blur-md p-8 md:p-10 border border-white/10 shadow-2xl flex flex-col justify-center animate-slide-up-fade">
+        <div className="text-center mb-8">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#5D3EBB] text-[#FED29C] shadow-xl shadow-[#5D3EBB]/20 ring-1 ring-white/10 animate-float">
+            <Crown className="h-8 w-8 fill-current" />
           </div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-xl font-extrabold tracking-tight">
             Create account
-            <span className="ml-1 text-gradient">.</span>
+            <span className="text-[#5D3EBB] text-xl">.</span>
           </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground/60">Get started with your workspace</p>
+          <p className="mt-1 text-xs text-muted-foreground/60">Get started with your Taskify productivity workspace</p>
         </div>
 
-        <form onSubmit={submit} className="space-y-5 animate-slide-up-fade animation-delay-100">
+        <form onSubmit={submit} className="space-y-4.5">
           {error && (
-            <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive animate-shake">
+            <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-4 py-3 text-xs text-rose-500 font-semibold animate-shake">
               <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
                 {error}
               </div>
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Name</label>
+          <div className="space-y-1.5 text-left">
+            <label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Name</label>
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-purple-500/30 rounded-xl blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity duration-300" />
               <input
+                type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
-                className="relative h-11 w-full rounded-xl border border-border/50 bg-background/60 backdrop-blur-xl px-3.5 text-sm text-foreground placeholder:text-muted-foreground/40 transition-all duration-200 hover:border-muted-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:border-ring"
+                className="relative h-11 w-full rounded-2xl border border-border bg-background/50 px-4 text-sm text-foreground placeholder:text-muted-foreground/45 transition-all duration-200 hover:border-muted-foreground/35 focus:outline-none focus:ring-1 focus:ring-[#5D3EBB]"
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Email</label>
+          <div className="space-y-1.5 text-left">
+            <label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Email</label>
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-purple-500/30 rounded-xl blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity duration-300" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder="you@taskify.com"
                 required
                 autoComplete="email"
-                className="relative h-11 w-full rounded-xl border border-border/50 bg-background/60 backdrop-blur-xl px-3.5 text-sm text-foreground placeholder:text-muted-foreground/40 transition-all duration-200 hover:border-muted-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:border-ring"
+                className="relative h-11 w-full rounded-2xl border border-border bg-background/50 px-4 text-sm text-foreground placeholder:text-muted-foreground/45 transition-all duration-200 hover:border-muted-foreground/35 focus:outline-none focus:ring-1 focus:ring-[#5D3EBB]"
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Password</label>
+          <div className="space-y-1.5 text-left">
+            <label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Password</label>
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-purple-500/30 rounded-xl blur-sm opacity-0 group-focus-within:opacity-100 transition-opacity duration-300" />
               <input
                 type={show ? "text" : "password"}
                 value={password}
@@ -103,12 +101,12 @@ export function RegisterPage() {
                 required
                 minLength={6}
                 autoComplete="new-password"
-                className="relative h-11 w-full rounded-xl border border-border/50 bg-background/60 backdrop-blur-xl px-3.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/40 transition-all duration-200 hover:border-muted-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:border-ring"
+                className="relative h-11 w-full rounded-2xl border border-border bg-background/50 px-4 pr-10 text-sm text-foreground placeholder:text-muted-foreground/45 transition-all duration-200 hover:border-muted-foreground/35 focus:outline-none focus:ring-1 focus:ring-[#5D3EBB]"
               />
               <button
                 type="button"
                 onClick={() => setShow(!show)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 transition-colors hover:text-muted-foreground/70"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/40 transition-colors hover:text-muted-foreground/75"
               >
                 {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -118,31 +116,31 @@ export function RegisterPage() {
           <button
             type="submit"
             disabled={loading || !email || !password}
-            className="group relative flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary via-primary/90 to-purple-600 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/30 transition-all duration-200 hover:shadow-2xl hover:shadow-primary/40 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="group relative flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#5D3EBB] hover:bg-[#4d32a3] text-xs font-bold text-white shadow-xl shadow-[#5D3EBB]/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed mt-2"
           >
             {loading ? (
               <span className="flex items-center gap-2.5">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                 Creating account...
               </span>
             ) : (
               <>
-                Create account
+                Create Account
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </>
             )}
           </button>
 
-          <p className="pt-4 text-center text-sm text-muted-foreground/60">
+          <p className="pt-3.5 text-center text-xs text-muted-foreground/60">
             Already have an account?{" "}
-            <Link to="/login" className="text-primary font-semibold transition-colors hover:text-primary/80">
-              Sign in
+            <Link to="/login" className="text-[#5D3EBB] dark:text-[#FED29C] font-bold transition-colors hover:opacity-80">
+              Sign In
             </Link>
           </p>
         </form>
 
-        <p className="mt-12 text-center text-xs text-muted-foreground/20">
-          &copy; 2026 Todo App
+        <p className="mt-8 text-center text-[10px] text-muted-foreground/30 font-medium">
+          &copy; 2026 Taskify productivity workspace. All rights reserved.
         </p>
       </div>
     </div>

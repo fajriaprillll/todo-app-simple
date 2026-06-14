@@ -8,7 +8,17 @@ const app = new Hono();
 app.use(
   "/*",
   cors({
-    origin: ["http://localhost:5173", "http://localhost:4173"],
+    origin: (origin) => {
+      if (!origin) return "http://localhost:5173";
+      if (
+        origin.startsWith("http://localhost:") ||
+        origin.endsWith(".vercel.app") ||
+        origin === process.env.FRONTEND_URL
+      ) {
+        return origin;
+      }
+      return "http://localhost:5173";
+    },
     credentials: true,
   })
 );
